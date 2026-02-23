@@ -20,6 +20,9 @@ asarUnpack:
 # 图标配置
 icon: build/icon.ico
 
+mac:
+  icon: build/icon.png
+
 win:
   executableName: moyin-creator
   icon: build/icon.ico
