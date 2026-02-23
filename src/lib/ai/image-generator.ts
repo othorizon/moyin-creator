@@ -529,7 +529,9 @@ export async function submitGridImageRequest(params: {
     requestBody.resolution = resolution;
   }
   if (referenceImages && referenceImages.length > 0) {
-    requestBody.image_urls = referenceImages;
+    //https://www.volcengine.com/docs/82379/1541523?lang=zh
+    requestBody.image = referenceImages;
+    // requestBody.image_urls = referenceImages;
   }
 
   console.log('[GridImageAPI] Submitting to', endpoint);

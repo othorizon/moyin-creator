@@ -150,13 +150,14 @@ const MODEL_CAPABILITIES: Record<string, ModelCapability[]> = {
   'gemini-imagen': ['image_generation'],
   'gemini-3-pro-image-preview': ['image_generation'],
   'gpt-image-1.5': ['image_generation'],
+  'doubao-seedream-4-5-251128': ['image_generation'],
 
   // ---- 视频生成模型 ----
   'cogvideox': ['video_generation'],
   'gemini-veo': ['video_generation'],
   'doubao-seedance-1-5-pro': ['video_generation'],
   'doubao-seedance-1-5-pro-251215': ['video_generation'],
-  'doubao-seedream-4-5-251128': ['video_generation'],
+
   'veo3.1': ['video_generation'],
   'sora-2-all': ['video_generation'],
   'wan2.6-i2v': ['video_generation'],

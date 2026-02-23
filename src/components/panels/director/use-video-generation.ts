@@ -652,7 +652,7 @@ async function callVolcVideoApi(
 
   const requestBody = { model, content };
 
-  console.log('[VideoGen] Volc format → POST /volc/v1/contents/generations/tasks', {
+  console.log('[VideoGen] Volc format → POST /contents/generations/tasks', {
     model,
     resolution,
     aspectRatio,
@@ -660,7 +660,7 @@ async function callVolcVideoApi(
     imageCount: imageWithRoles.filter(i => i.url).length,
   });
 
-  const submitResponse = await fetch(`${baseUrl}/volc/v1/contents/generations/tasks`, {
+  const submitResponse = await fetch(`${baseUrl}/contents/generations/tasks`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -691,7 +691,7 @@ async function callVolcVideoApi(
     onProgress?.(Math.min(20 + Math.floor((attempt / maxAttempts) * 80), 99));
 
     const statusResponse = await fetch(
-      `${baseUrl}/volc/v1/contents/generations/tasks/${taskId}`,
+      `${baseUrl}/contents/generations/tasks/${taskId}`,
       {
         method: 'GET',
         headers: {
