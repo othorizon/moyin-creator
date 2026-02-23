@@ -340,6 +340,52 @@ async function ensureMinImageSize(
   }
 }
 
+/**
+ * Convert an image URL/blob to strict data URL format:
+ * data:image/<lowercase-format>;base64,<Base64>
+ */
+async function toStrictImageDataUrl(imageUrl: string): Promise<string> {
+  if (!imageUrl) throw new Error('图片 URL 为空，无法转换为 base64');
+
+  const normalizeDataUrl = (raw: string): string => {
+    const match = raw.match(/^data:([^;]+);base64,(.+)$/i);
+    if (!match) {
+      throw new Error('无效的 data URL 格式');
+    }
+    const mime = (match[1] || 'image/png').toLowerCase();
+    const base64 = match[2] || '';
+    return `data:${mime};base64,${base64}`;
+  };
+
+  if (imageUrl.startsWith('data:')) {
+    return normalizeDataUrl(imageUrl);
+  }
+
+  const response = await fetch(imageUrl);
+  if (!response.ok) {
+    throw new Error(`下载图片失败: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result;
+      if (typeof result === 'string') {
+        resolve(result);
+      } else {
+        reject(new Error('读取图片数据失败'));
+      }
+    };
+    reader.onerror = () => reject(new Error('读取图片数据失败'));
+    reader.readAsDataURL(blob);
+  });
+
+  const normalized = normalizeDataUrl(dataUrl);
+  // 强制确保 image/* 且格式小写（兼容某些 image/JPEG 大写返回）
+  return normalized.replace(/^data:image\/([^;]+);base64,/i, (_, fmt: string) => `data:image/${fmt.toLowerCase()};base64,`);
+}
+
 // ==================== 视频生成主入口 ====================
 
 // Call video generation API — 根据模型自动路由到正确的 MemeFast API 格式
@@ -618,9 +664,11 @@ async function callVolcVideoApi(
   // 图片内容（首帧/尾帧）
   for (const img of imageWithRoles) {
     if (img.url) {
+      const base64DataUrl = await toStrictImageDataUrl(img.url);
       content.push({
         type: 'image_url',
-        image_url: { url: img.url },
+        // image_url: { url: img.url },
+        image_url: { url: base64DataUrl },
         role: img.role,
       });
     }
