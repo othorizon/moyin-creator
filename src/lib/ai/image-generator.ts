@@ -56,6 +56,37 @@ const RESOLUTION_MULTIPLIERS: Record<string, number> = {
   '4K': 4,
 };
 
+const SEEDREAM_SIZE_MAP: Record<string, Record<string, string>> = {
+  '2K': {
+    '1:1': '2048x2048',
+    '4:3': '2304x1728',
+    '3:4': '1728x2304',
+    '16:9': '2848x1600',
+    '9:16': '1600x2848',
+    '3:2': '2496x1664',
+    '2:3': '1664x2496',
+    '21:9': '3136x1344',
+  },
+  '4K': {
+    '1:1': '4096x4096',
+    '3:4': '3520x4704',
+    '4:3': '4704x3520',
+    '16:9': '5504x3040',
+    '9:16': '3040x5504',
+    '2:3': '3328x4992',
+    '3:2': '4992x3328',
+    '21:9': '6240x2656',
+  },
+};
+
+function getSeedreamSize(aspectRatio: string, resolution?: string): string | undefined {
+  if(resolution==='1K') {
+    resolution='2K'; // seedream 不支持 1k
+  }
+  const normalizedResolution = resolution || '2K';
+  return SEEDREAM_SIZE_MAP[normalizedResolution]?.[aspectRatio];
+}
+
 function getTargetDimensions(aspectRatio: string, resolution?: string): { width: number; height: number } | undefined {
   const baseDims = ASPECT_RATIO_DIMS[aspectRatio];
   if (!baseDims) return undefined;
@@ -283,6 +314,14 @@ async function submitImageTask(
     const dims = ASPECT_RATIO_DIMS[aspectRatio];
     if (dims) {
       sizeValue = `${dims.width}x${dims.height}`;
+    }
+  }
+
+  //seedream 的 size 字段配置
+  if (model&&model.toLowerCase().includes('seedream')) {
+    const seedreamSize = getSeedreamSize(aspectRatio, resolution);
+    if (seedreamSize) {
+      sizeValue = seedreamSize;
     }
   }
 
@@ -528,10 +567,21 @@ export async function submitGridImageRequest(params: {
   if (resolution) {
     requestBody.resolution = resolution;
   }
+  //seedream 的 size 字段配置
+  if (model.toLowerCase().includes('seedream')) {
+    const seedreamSize = getSeedreamSize(aspectRatio, resolution);
+    if (seedreamSize) {
+      requestBody.size = seedreamSize;
+    }
+  }
+  
   if (referenceImages && referenceImages.length > 0) {
+    if (model.toLowerCase().includes('seedream')) {
     //https://www.volcengine.com/docs/82379/1541523?lang=zh
-    requestBody.image = referenceImages;
-    // requestBody.image_urls = referenceImages;
+      requestBody.image = referenceImages;
+    } else {
+      requestBody.image_urls = referenceImages;
+    }
   }
 
   console.log('[GridImageAPI] Submitting to', endpoint);
